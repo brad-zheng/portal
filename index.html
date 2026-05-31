@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>郑大钱 · 个人门户</title>
+<style>
+  :root {
+    --bg: #0c1018;
+    --card: #141820;
+    --border: #1e2430;
+    --text: #c8ccd4;
+    --text2: #7a8090;
+    --accent: #4a90b8;
+    --red: #a86858;
+    --green: #3a9a62;
+    --purple: #8068b0;
+    --orange: #c87840;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 16px 14px 32px;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* 顶部 */
+  .header {
+    text-align: center;
+    padding: 20px 0 8px;
+  }
+  .header .emoji { font-size: 36px; display: block; margin-bottom: 4px; }
+  .header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+  .header .date { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  
+  /* 今日训练卡片 */
+  .section-title {
+    font-size: 12px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin: 24px 0 10px; padding-left: 4px;
+  }
+  .today-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px; position: relative; overflow: hidden;
+  }
+  .today-card::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 120px; height: 120px; border-radius: 50%;
+    opacity: 0.06; pointer-events: none;
+  }
+  .today-card.rest::before { background: var(--text2); }
+  .today-card.push::before { background: var(--accent); }
+  .today-card.legs::before { background: var(--green); }
+  .today-card.pull::before { background: var(--purple); }
+  .today-card.badminton::before { background: var(--orange); }
+  .today-card.cycling::before { background: var(--accent); }
+  .today-card.core::before { background: var(--green); }
+  
+  .today-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .today-icon { font-size: 32px; }
+  .today-info { flex: 1; }
+  .today-day { font-size: 13px; color: var(--text2); }
+  .today-title { font-size: 20px; font-weight: 700; }
+  .today-duration { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .today-desc { font-size: 13px; color: var(--text2); line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .today-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .today-actions .btn {
+    flex:1; padding: 10px 0; border-radius: 10px; text-align: center;
+    font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .today-actions .btn:active { opacity: 0.7; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  
+  /* 周训练概览 */
+  .week-row {
+    display: flex; gap: 6px; margin-top: 12px;
+  }
+  .week-day {
+    flex: 1; text-align: center; padding: 10px 4px 8px;
+    border-radius: 10px; background: var(--card); border: 1px solid var(--border);
+    font-size: 11px; color: var(--text2);
+  }
+  .week-day.today {
+    border-color: var(--accent);
+    background: rgba(74,144,184,0.08);
+    color: var(--accent);
+  }
+  .week-day .wd-icon { font-size: 18px; display: block; margin-bottom: 4px; }
+  .week-day .wd-name { font-weight: 600; }
+  .week-day .wd-label { font-size: 10px; display: block; margin-top: 2px; opacity: 0.7; }
+  
+  /* 快捷入口网格 */
+  .link-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .link-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 14px; text-decoration: none;
+    display: flex; align-items: center; gap: 12px;
+    transition: border-color 0.15s;
+  }
+  .link-card:active { border-color: var(--accent); }
+  .link-card .lc-icon { font-size: 28px; flex-shrink: 0; }
+  .link-card .lc-text { flex: 1; min-width: 0; }
+  .link-card .lc-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .link-card .lc-sub { font-size: 11px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  
+  /* Footer */
+  .footer {
+    text-align: center; color: var(--text2); font-size: 11px;
+    margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="emoji">💰</span>
+  <h1>郑大钱</h1>
+  <div class="date" id="headerDate"></div>
+</div>
+
+<!-- 今日训练 -->
+<div class="section-title">🏋️ 今日训练</div>
+<div class="today-card" id="todayCard">
+  <div class="today-top">
+    <span class="today-icon" id="todayIcon"></span>
+    <div class="today-info">
+      <div class="today-day" id="todayDay"></div>
+      <div class="today-title" id="todayTitle"></div>
+      <div class="today-duration" id="todayDuration"></div>
+    </div>
+  </div>
+  <div class="today-desc" id="todayDesc"></div>
+  <div class="today-actions" id="todayActions"></div>
+</div>
+
+<!-- 周概览 -->
+<div class="week-row" id="weekRow"></div>
+
+<!-- 快捷入口 -->
+<div class="section-title">🔗 快捷入口</div>
+<div class="link-grid">
+  <a class="link-card" href="#" id="linkTrainingCard">
+    <span class="lc-icon">📋</span>
+    <div class="lc-text"><div class="lc-title">训练卡</div><div class="lc-sub">月1筑基期 · 交互版</div></div>
+  </a>
+  <a class="link-card" href="https://docs.qq.com/smartsheet/DRWFRRW1GaGVrVUxx?_fid=EaQEmFhekULq" target="_blank" rel="noopener">
+    <span class="lc-icon">✅</span>
+    <div class="lc-text"><div class="lc-title">打卡表A</div><div class="lc-sub">每日训练打卡</div></div>
+  </a>
+  <a class="link-card" href="https://docs.qq.com/smartsheet/DRWJ5eWpvQ3JqY3JR?_fid=EbyyjoCrjcrQ" target="_blank" rel="noopener">
+    <span class="lc-icon">📊</span>
+    <div class="lc-text"><div class="lc-title">打卡表B</div><div class="lc-sub">基线测试与评估</div></div>
+  </a>
+  <a class="link-card" href="https://brad-zheng.github.io/weather-dashboard/" target="_blank" rel="noopener">
+    <span class="lc-icon">🌤️</span>
+    <div class="lc-text"><div class="lc-title">天气看板</div><div class="lc-sub">337城 · 三年对比</div></div>
+  </a>
+</div>
+
+<div class="footer">郑大钱 · 个人门户 &copy; 2026</div>
+
+<script>
+// ====== 训练日程数据 ======
+const schedule = {
+  0: { name:'周日', type:'core',     title:'核心+拉伸',      dur:'~30min', desc:'平板支撑 · 侧平板 · 死虫式 · 猫牛式 · 臀桥 · 全身拉伸',           icon:'🧘' },
+  1: { name:'周一', type:'rest',      title:'完全休息',        dur:'',        desc:'工作最忙的一天，吃好睡好，不安排任何训练',                       icon:'😴' },
+  2: { name:'周二', type:'push',      title:'上肢推+核心',     dur:'~50min',  desc:'上斜俯卧撑 · 跪姿钻石俯卧撑 · 凳上臂屈伸 · 侧平举 · 平板支撑',    icon:'💪' },
+  3: { name:'周三', type:'legs',      title:'下肢+核心',       dur:'~50min',  desc:'徒手深蹲 · 后撤弓步蹲 · 臀桥 · 提踵 · 死虫式 · 鸟狗式 · ⚠️留力给周五', icon:'🦵' },
+  4: { name:'周四', type:'pull',      title:'上肢拉+背+核心',  dur:'~55min',  desc:'俯卧YTWL · 门框划船 · 桌边俯身划船 · 毛巾滑墙下拉 · 超人式 · 面拉', icon:'🔙' },
+  5: { name:'周五', type:'badminton', title:'羽毛球',          dur:'~2h',     desc:'高强度间歇+下肢爆发力，天然HIIT训练。打球前吃碳水，充分热身。',       icon:'🏸' },
+  6: { name:'周六', type:'cycling',   title:'户外骑行',        dur:'2-4h',    desc:'Zone 2有氧耐力骑，40-60km，踏频85-95rpm。戴头盔！补水！',           icon:'🚴' },
+};
+
+// ====== 初始化 ======
+const today = new Date();
+const dayOfWeek = today.getDay(); // 0=周日, 1=周一, ...
+const plan = schedule[dayOfWeek];
+
+// 头部日期
+document.getElementById('headerDate').textContent =
+  today.getFullYear() + '年' + (today.getMonth()+1) + '月' + today.getDate() + '日  ' + plan.name;
+
+// 今日训练卡片
+const card = document.getElementById('todayCard');
+card.className = 'today-card ' + plan.type;
+document.getElementById('todayIcon').textContent = plan.icon;
+document.getElementById('todayDay').textContent = plan.name;
+document.getElementById('todayTitle').textContent = plan.title;
+document.getElementById('todayDuration').textContent = plan.dur;
+document.getElementById('todayDesc').textContent = plan.desc;
+
+// 按钮：休息日只显示一个，训练日显示两个
+const actions = document.getElementById('todayActions');
+const trainCardHref = 'training.html';
+if (plan.type === 'rest') {
+  actions.innerHTML = '<span style="font-size:13px;color:var(--text2);padding:8px 0">享受休息，肌肉在休息时才生长 💤</span>';
+} else {
+  actions.innerHTML =
+    '<a class="btn btn-primary" href="' + trainCardHref + '" id="btnTrainCard">查看训练卡</a>' +
+    '<a class="btn btn-outline" href="https://docs.qq.com/smartsheet/DRWFRRW1GaGVrVUxx?_fid=EaQEmFhekULq" target="_blank" rel="noopener">去打卡</a>';
+}
+
+// 训练卡链接
+document.getElementById('linkTrainingCard').href = trainCardHref;
+
+// 周概览
+const weekRow = document.getElementById('weekRow');
+for (let d = 0; d < 7; d++) {
+  const s = schedule[d];
+  const div = document.createElement('div');
+  div.className = 'week-day' + (d === dayOfWeek ? ' today' : '');
+  div.innerHTML =
+    '<span class="wd-icon">' + s.icon + '</span>' +
+    '<span class="wd-name">' + s.name + '</span>' +
+    '<span class="wd-label">' + s.title + '</span>';
+  weekRow.appendChild(div);
+}
+</script>
+</body>
+</html>

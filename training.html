@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>训练卡 · 月1筑基期</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f0f3; color: #1a1a1a; min-height: 100vh; }
+  
+  /* 顶部导航 */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid #e0e0e0; padding: 12px 16px;
+  }
+  .nav-title { font-size: 16px; font-weight: 700; text-align: center; color: #333; }
+  .nav-sub { font-size: 11px; text-align: center; color: #999; margin-top: 2px; }
+  
+  /* 星期选择器 */
+  .day-tabs {
+    display: flex; gap: 6px; padding: 12px 16px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  
+  .day-tab {
+    flex-shrink: 0; padding: 8px 14px; border-radius: 20px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 2px solid transparent; transition: all 0.2s;
+    background: white; color: #666;
+  }
+  .day-tab.active { color: white; border-color: transparent; }
+  .day-tab .day-name { font-size: 11px; font-weight: 400; opacity: 0.8; display: block; margin-top: 1px; }
+  
+  /* 日卡颜色 */
+  .day-tab[data-day="rest"].active { background: linear-gradient(135deg, #78909c, #546e7a); }
+  .day-tab[data-day="push"].active { background: linear-gradient(135deg, #42a5f5, #1565c0); }
+  .day-tab[data-day="legs"].active { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+  .day-tab[data-day="pull"].active { background: linear-gradient(135deg, #ab47bc, #6a1b9a); }
+  .day-tab[data-day="badminton"].active { background: linear-gradient(135deg, #ff7043, #d84315); }
+  .day-tab[data-day="cycling"].active { background: linear-gradient(135deg, #26c6da, #00838f); }
+  .day-tab[data-day="core"].active { background: linear-gradient(135deg, #8d6e63, #4e342e); }
+  
+  /* 卡片区域 */
+  .card-area { padding: 0 16px 32px; }
+  .day-card { display: none; }
+  .day-card.active { display: block; }
+  
+  /* 卡片头部 */
+  .card-hero {
+    border-radius: 16px; padding: 20px; color: white;
+    margin-bottom: 12px;
+  }
+  .card-hero.rest { background: linear-gradient(135deg, #78909c, #546e7a); }
+  .card-hero.push { background: linear-gradient(135deg, #42a5f5, #1565c0); }
+  .card-hero.legs { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+  .card-hero.pull { background: linear-gradient(135deg, #ab47bc, #6a1b9a); }
+  .card-hero.badminton { background: linear-gradient(135deg, #ff7043, #d84315); }
+  .card-hero.cycling { background: linear-gradient(135deg, #26c6da, #00838f); }
+  .card-hero.core { background: linear-gradient(135deg, #8d6e63, #4e342e); }
+  
+  .card-hero h1 { font-size: 22px; font-weight: 700; }
+  .card-hero .meta { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+  .card-hero .week-hint { 
+    display: inline-block; margin-top: 10px; padding: 4px 12px;
+    background: rgba(255,255,255,0.2); border-radius: 12px;
+    font-size: 12px; font-weight: 500;
+  }
+  
+  /* 分区标题 */
+  .section-label {
+    font-size: 12px; font-weight: 700; color: #999;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin: 16px 0 8px; padding-left: 4px;
+  }
+  
+  /* 动作条目 */
+  .exercise-item {
+    background: white; border-radius: 12px; margin-bottom: 8px;
+    overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s;
+  }
+  .exercise-item:active { box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+  
+  .exercise-header {
+    display: flex; align-items: center; padding: 14px 16px;
+    cursor: pointer; user-select: none;
+  }
+  
+  .ex-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0; margin-right: 12px;
+  }
+  .ex-num.push { background: #e3f2fd; color: #1565c0; }
+  .ex-num.legs { background: #e8f5e9; color: #2e7d32; }
+  .ex-num.pull { background: #f3e5f5; color: #6a1b9a; }
+  .ex-num.badminton { background: #fbe9e7; color: #d84315; }
+  .ex-num.cycling { background: #e0f7fa; color: #00838f; }
+  .ex-num.core { background: #efebe9; color: #4e342e; }
+  .ex-num.stretch { background: #f3e5f5; color: #7b1fa2; }
+  
+  .ex-info { flex: 1; min-width: 0; }
+  .ex-name { font-size: 15px; font-weight: 600; color: #222; }
+  .ex-brief { font-size: 12px; color: #888; margin-top: 2px; }
+  
+  .ex-arrow {
+    width: 20px; height: 20px; flex-shrink: 0; margin-left: 8px;
+    transition: transform 0.25s ease;
+  }
+  .ex-arrow svg { width: 100%; height: 100%; fill: #bbb; }
+  .exercise-item.open .ex-arrow { transform: rotate(180deg); }
+  
+  /* 展开的详细要点 */
+  .exercise-detail {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+  .exercise-item.open .exercise-detail {
+    max-height: 1200px;
+  }
+  
+  .detail-inner {
+    padding: 0 16px 16px; border-top: 1px solid #f0f0f0;
+  }
+  
+  /* GIF动图容器 */
+  .detail-gif {
+    margin: 12px 0 8px; text-align: center;
+    background: #fafafa; border-radius: 10px; overflow: hidden;
+  }
+  .detail-gif img {
+    max-width: 100%; max-height: 220px; object-fit: contain;
+    display: block; margin: 0 auto;
+  }
+  .detail-gif .gif-hint {
+    font-size: 10px; color: #bbb; padding: 4px 0 6px; text-align: center;
+  }
+  
+  .detail-title {
+    font-size: 12px; font-weight: 700; color: #888;
+    margin-top: 12px; margin-bottom: 6px;
+  }
+  
+  .detail-text {
+    font-size: 13px; color: #444; line-height: 1.7;
+  }
+  .detail-text strong { color: #d32f2f; font-weight: 600; }
+  .detail-text em { color: #1565c0; font-style: normal; font-weight: 600; }
+  
+  .detail-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 10px;
+    font-size: 11px; font-weight: 600; margin-right: 6px; margin-top: 6px;
+  }
+  .tag-easy { background: #e8f5e9; color: #2e7d32; }
+  .tag-hard { background: #fce4ec; color: #c62828; }
+  .tag-key { background: #fff8e1; color: #f57f17; }
+  
+  /* 提示框 */
+  .tip-card {
+    background: #fff8e1; border-radius: 12px; padding: 14px 16px;
+    margin: 12px 0; font-size: 13px; color: #6d5e00; line-height: 1.6;
+    border-left: 4px solid #ffc107;
+  }
+  .warn-card {
+    background: #fce4ec; border-radius: 12px; padding: 14px 16px;
+    margin: 12px 0; font-size: 13px; color: #b71c1c; line-height: 1.6;
+    border-left: 4px solid #e53935;
+  }
+  
+  /* 拉伸条目（不可展开） */
+  .stretch-item {
+    background: white; border-radius: 10px; padding: 12px 16px;
+    margin-bottom: 6px; display: flex; justify-content: space-between;
+    align-items: center; font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .stretch-item .s-name { font-weight: 500; color: #444; }
+  .stretch-item .s-time { color: #999; font-size: 12px; }
+  
+  /* 信息行（羽毛球/骑行用） */
+  .info-row {
+    background: white; border-radius: 10px; padding: 12px 16px;
+    margin-bottom: 6px; display: flex; justify-content: space-between;
+    align-items: center; font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .info-row .i-label { font-weight: 500; color: #444; }
+  .info-row .i-value { color: #666; font-size: 12px; text-align: right; max-width: 55%; }
+  
+  /* 周进度标签 */
+  .week-pills {
+    display: flex; gap: 4px; margin: 10px 0 4px; flex-wrap: wrap;
+  }
+  .week-pill {
+    padding: 4px 10px; border-radius: 10px; font-size: 11px;
+    font-weight: 600; background: rgba(255,255,255,0.25); color: white;
+  }
+  .week-pill.current { background: rgba(255,255,255,0.45); }
+  
+  /* 休息日特殊样式 */
+  .rest-content {
+    text-align: center; padding: 40px 20px;
+  }
+  .rest-content .emoji { font-size: 48px; margin-bottom: 16px; }
+  .rest-content p { font-size: 15px; color: #666; line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="nav">
+  <div class="nav-title">训练卡 · 月1筑基期</div>
+  <div class="nav-sub">点击动作展开动图+详细要点</div>
+</div>
+
+<!-- 星期选择器：从周一开始 -->
+<div class="day-tabs" id="dayTabs">
+  <div class="day-tab active" data-day="rest" data-card="mon" onclick="switchDay(this)">
+    周一<span class="day-name">休息</span>
+  </div>
+  <div class="day-tab" data-day="push" data-card="tue" onclick="switchDay(this)">
+    周二<span class="day-name">上肢推</span>
+  </div>
+  <div class="day-tab" data-day="legs" data-card="wed" onclick="switchDay(this)">
+    周三<span class="day-name">下肢</span>
+  </div>
+  <div class="day-tab" data-day="pull" data-card="thu" onclick="switchDay(this)">
+    周四<span class="day-name">拉+背</span>
+  </div>
+  <div class="day-tab" data-day="badminton" data-card="fri" onclick="switchDay(this)">
+    周五<span class="day-name">羽毛球</span>
+  </div>
+  <div class="day-tab" data-day="cycling" data-card="sat" onclick="switchDay(this)">
+    周六<span class="day-name">骑行</span>
+  </div>
+  <div class="day-tab" data-day="core" data-card="sun" onclick="switchDay(this)">
+    周日<span class="day-name">核心</span>
+  </div>
+</div>
+
+<!-- 卡片区域 -->
+<div class="card-area">
+
+<!-- ==================== 周一：休息 ==================== -->
+<div class="day-card active" id="card-mon">
+  <div class="card-hero rest">
+    <h1>周一 · 完全休息</h1>
+    <div class="meta">不给身体额外负担</div>
+  </div>
+  
+  <div class="rest-content">
+    <div class="emoji">😴</div>
+    <p>工作最忙的一天，不给自己加压。<br><br>吃好睡好就行。<br><br>如果实在太累，晚上泡泡脚早点睡。<br><br>23:00前睡觉是最好的训练。</p>
+  </div>
+</div>
+
+<!-- ==================== 周二：上肢推+核心 ==================== -->
+<div class="day-card" id="card-tue">
+  <div class="card-hero push">
+    <h1>周二 · 上肢推+核心</h1>
+    <div class="meta">~50 min · 胸、肩、三头、核心</div>
+    <div class="week-pills">
+      <span class="week-pill current">W1 标准执行</span>
+      <span class="week-pill">W2 降支撑面</span>
+      <span class="week-pill">W3 加1组</span>
+      <span class="week-pill">W4 测试俯卧撑</span>
+    </div>
+  </div>
+  
+  <div class="section-label">🔥 热身 5min</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num push">1</span>
+      <div class="ex-info"><div class="ex-name">手臂环绕</div><div class="ex-brief">向前+向后 各15秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">双臂伸直，向前大圈慢速画15秒，再反方向15秒。激活肩关节，让肩部润滑起来。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num push">2</span>
+      <div class="ex-info"><div class="ex-name">肩部绕环</div><div class="ex-brief">15秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">大幅慢速画圈，感受肩胛骨在活动。不要太快，目的是热身不是拉伤。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num push">3</span>
+      <div class="ex-info"><div class="ex-name">开合跳</div><div class="ex-brief">30秒 × 2组</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/05/Jumping-jack.gif" alt="开合跳" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-text">微出汗即可，不追速度。如果觉得累就慢一点，重点是让身体热起来。</div>
+    </div></div>
+  </div>
+  
+  <div class="section-label">💪 训练 35min</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num push">1</span>
+      <div class="ex-info"><div class="ex-name">上斜俯卧撑</div><div class="ex-brief">3组 × 8-12次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/06/Incline-Push-Up.gif" alt="上斜俯卧撑" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">手撑稳固的桌面或床沿，高度约70-90cm。身体从头到脚成一条直线，核心收紧不塌腰。下落时肘部约45度打开，胸部接近支撑面，推起时呼气。</div>
+      <div class="detail-title">难度调节</div>
+      <div class="detail-text"><em>轻松了</em>→降低支撑面（桌面→椅子→地面）<br><em>做不了</em>→提高支撑面（椅子→桌面→墙壁）</div>
+      <span class="detail-tag tag-key">核心收紧不塌腰</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num push">2</span>
+      <div class="ex-info"><div class="ex-name">跪姿钻石俯卧撑</div><div class="ex-brief">3组 × 6-10次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Diamond-Push-up.gif" alt="钻石俯卧撑" onerror="this.parentElement.style.display='none'"><div class="gif-hint">参考标准钻石俯卧撑，跪姿版双膝着地</div></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">双膝着地，双手食指拇指相碰成菱形，放在胸口正下方。肘部贴近身体两侧，感受三头肌（手臂后侧）发力。下落到胸口接近手背，推起到手臂伸直。</div>
+      <div class="detail-title">关键</div>
+      <div class="detail-text">手肘<strong>不要外展</strong>，贴紧身体两侧，这样才能练到三头肌。</div>
+      <span class="detail-tag tag-key">肘贴身 · 感受三头肌</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num push">3</span>
+      <div class="ex-info"><div class="ex-name">凳上臂屈伸</div><div class="ex-brief">3组 × 8-12次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Bench-Dips.gif" alt="凳上臂屈伸" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">坐在稳固椅子边缘，双手撑在臀部两侧椅面上，手指朝前。臀部离开椅子，身体前移，慢慢弯曲手肘下落到上臂平行地面，再推起。</div>
+      <div class="detail-title">难度调节</div>
+      <div class="detail-text"><em>脚越远越难</em>，初学脚靠近椅子。下落时不要耸肩。</div>
+      <span class="detail-tag tag-easy">初学脚靠椅子</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num push">4</span>
+      <div class="ex-info"><div class="ex-name">侧平举（矿泉水瓶）</div><div class="ex-brief">3组 × 12次 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif" alt="侧平举" onerror="this.parentElement.style.display='none'"><div class="gif-hint">参考哑铃侧平举，用水瓶替代</div></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">每手一瓶500ml水（约0.5kg），站直微屈膝。手臂微弯，缓慢向两侧抬起至与肩同高，停1秒，慢放3秒下降。</div>
+      <div class="detail-title">⚠️ 绝对禁忌</div>
+      <div class="detail-text"><strong>绝对不甩！</strong>靠肩膀发力而不是惯性。如果甩了说明太重，换小瓶水。</div>
+      <span class="detail-tag tag-hard">不甩 · 慢放3秒</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num push">5</span>
+      <div class="ex-info"><div class="ex-name">平板支撑</div><div class="ex-brief">3组 × 20-30秒 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/plank.gif" alt="平板支撑" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">前臂撑地，肘在肩正下方，身体从头到脚成一条线。核心收紧，臀部不翘起不塌下。</div>
+      <div class="detail-title">⚠️ 安全红线</div>
+      <div class="detail-text"><strong>塌腰=伤腰</strong>，宁可撑的时间短也不塌腰。如果感觉腰部发力多于腹部，立刻停止。</div>
+      <span class="detail-tag tag-hard">宁短不塌</span>
+    </div></div>
+  </div>
+  
+  <div class="section-label">🧘 拉伸 5min</div>
+  
+  <div class="stretch-item"><span class="s-name">胸肌门框拉伸</span><span class="s-time">每侧30秒 × 2</span></div>
+  <div class="stretch-item"><span class="s-name">三头过头拉伸</span><span class="s-time">每侧30秒 × 2</span></div>
+</div>
+
+<!-- ==================== 周三：下肢+核心 ==================== -->
+<div class="day-card" id="card-wed">
+  <div class="card-hero legs">
+    <h1>周三 · 下肢+核心</h1>
+    <div class="meta">~50 min · 臀、腿、核心</div>
+    <div class="week-pills">
+      <span class="week-pill current">W1 深蹲3×10</span>
+      <span class="week-pill">W2 蹲12/臀15</span>
+      <span class="week-pill">W3 弓步+1组</span>
+      <span class="week-pill">W4 力竭测试</span>
+    </div>
+  </div>
+  
+  <div class="warn-card">⚠️ 周五要打羽毛球，今天不要把腿练到力竭，留7分实力！</div>
+  
+  <div class="section-label">🔥 热身 5min</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">1</span>
+      <div class="ex-info"><div class="ex-name">原地高抬腿</div><div class="ex-brief">30秒 × 2组</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">膝盖提到髋部高度，中等速度。激活髋屈肌和核心，让腿部准备好。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">2</span>
+      <div class="ex-info"><div class="ex-name">髋关节绕环</div><div class="ex-brief">每侧10次</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">单腿站立，另一腿画大圈。打开髋关节活动度，深蹲需要灵活的髋部。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">3</span>
+      <div class="ex-info"><div class="ex-name">徒手深蹲（慢速预热）</div><div class="ex-brief">5次</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">不追深度，找感觉。慢下慢起，感受臀部和膝盖的轨迹。</div>
+    </div></div>
+  </div>
+  
+  <div class="section-label">💪 训练 35min</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">1</span>
+      <div class="ex-info"><div class="ex-name">徒手深蹲</div><div class="ex-brief">3组 × 10-12次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/05/bodyweight-squat-full-version.gif" alt="徒手深蹲" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">双脚与肩同宽或略宽，脚尖微微外八约15-30度。下蹲时膝盖沿脚尖方向打开，<em>臀部先往后坐</em>再往下蹲，蹲到髋部低于膝盖。起立时臀部发力站直。全程挺胸、核心收紧。</div>
+      <div class="detail-title">蹲不下去怎么办</div>
+      <div class="detail-text">脚跟垫一本厚书辅助，逐步减少垫的高度。</div>
+      <div class="detail-title">⚠️ 安全提醒</div>
+      <div class="detail-text">只做3组不做到力竭！给周五羽毛球留腿。<strong>膝盖内扣=危险</strong>，膝盖必须沿脚尖方向。</div>
+      <span class="detail-tag tag-key">臀先后坐 · 膝沿脚尖</span>
+      <span class="detail-tag tag-hard">不力竭 · 留7分力</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">2</span>
+      <div class="ex-info"><div class="ex-name">后撤弓步蹲</div><div class="ex-brief">3组 × 每侧8次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2022/08/bodyweight-reverse-lunge.gif" alt="后撤弓步蹲" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">一脚向后迈一大步，前腿弯曲至大腿平行地面，后膝轻触地面（不砸地）。推起时前腿臀部发力站回。交替进行。</div>
+      <div class="detail-title">膝盖不适</div>
+      <div class="detail-text">步幅缩小即可。前膝不要超过脚尖太多。</div>
+      <span class="detail-tag tag-easy">步幅可调</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">3</span>
+      <div class="ex-info"><div class="ex-name">臀桥</div><div class="ex-brief">3组 × 12-15次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Glute-Bridge-.gif" alt="臀桥" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">仰卧屈膝脚踩地，双脚与髋同宽。臀部发力推起至肩-髋-膝成一条线，<em>顶峰挤压臀部2秒</em>，慢放3秒回落。不要过度挺腰，是臀部在发力。</div>
+      <span class="detail-tag tag-key">顶峰夹臀2秒 · 慢放3秒</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">4</span>
+      <div class="ex-info"><div class="ex-name">提踵</div><div class="ex-brief">3组 × 15-20次 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Calf-Raise.gif" alt="提踵" onerror="this.parentElement.style.display='none'"><div class="gif-hint">参考哑铃提踵，徒手版无需负重</div></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">站在台阶或厚书边缘，前脚掌踩稳，脚跟悬空。慢起踮脚到最高点停1秒，慢放至脚跟低于台阶感受拉伸。</div>
+      <span class="detail-tag tag-key">骑行小腿力量核心动作</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">5</span>
+      <div class="ex-info"><div class="ex-name">死虫式</div><div class="ex-brief">3组 × 每侧8次 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/05/Dead-Bug.gif" alt="死虫式" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">仰卧，双臂垂直指向天花板，双腿屈髋90度抬起。下背紧贴地面，缓慢伸展对侧手脚（右手+左腿），不要触地，收回换另一侧。</div>
+      <div class="detail-title">自检标准</div>
+      <div class="detail-text"><strong>下背离开地面=核心没收紧</strong>，在腰下放一只手，手被压住才算对。</div>
+      <span class="detail-tag tag-key">下背贴地是核心</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num legs">6</span>
+      <div class="ex-info"><div class="ex-name">鸟狗式</div><div class="ex-brief">3组 × 每侧8次 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2022/07/Bird-Dog.gif" alt="鸟狗式" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">四点跪姿（双手双膝），同时伸展对侧手脚至与躯干成一条线，停留2秒，缓慢收回换另一侧。</div>
+      <div class="detail-title">注意</div>
+      <div class="detail-text">脊柱保持中立，<strong>不扭转不塌腰</strong>。想象背上放一杯水不能洒。</div>
+      <span class="detail-tag tag-key">脊柱中立 · 停2秒</span>
+    </div></div>
+  </div>
+  
+  <div class="section-label">🧘 拉伸 5min</div>
+  
+  <div class="stretch-item"><span class="s-name">站姿股四头肌拉伸</span><span class="s-time">每侧30秒 × 2</span></div>
+  <div class="stretch-item"><span class="s-name">坐姿腘绳肌拉伸</span><span class="s-time">30秒 × 2</span></div>
+  <div class="stretch-item"><span class="s-name">髋屈肌弓步拉伸</span><span class="s-time">每侧30秒</span></div>
+</div>
+
+<!-- ==================== 周四：上肢拉+背+核心 ==================== -->
+<div class="day-card" id="card-thu">
+  <div class="card-hero pull">
+    <h1>周四 · 上肢拉+背+核心</h1>
+    <div class="meta">~55 min · 背、二头、肩后束、核心</div>
+    <div class="week-pills">
+      <span class="week-pill current">W1 3kg划船</span>
+      <span class="week-pill">W2 5kg+后倾</span>
+      <span class="week-pill">W3 加1组</span>
+      <span class="week-pill">W4 划船12次</span>
+    </div>
+  </div>
+  
+  <div class="tip-card">💡 今天是练背日——背部是居家最难练的肌群，动作多但不追力竭，重点找背部发力感</div>
+  
+  <div class="section-label">🔥 热身+背激活 8min</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">1</span>
+      <div class="ex-info"><div class="ex-name">手臂环绕</div><div class="ex-brief">向前+向后 各15秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">激活肩关节，为练背做准备。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">2</span>
+      <div class="ex-info"><div class="ex-name">肩胛骨缩放</div><div class="ex-brief">15次</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">站直，肩胛骨往后夹紧再放开，找背部发力感。这步很关键——练背前先让大脑知道"背部在哪"。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">3</span>
+      <div class="ex-info"><div class="ex-name">毛巾绕肩</div><div class="ex-brief">10次</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">双手持毛巾两端，过头绕到身后再回来。全程保持毛巾张力，活动肩关节全范围。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">4</span>
+      <div class="ex-info"><div class="ex-name">俯卧YTWL</div><div class="ex-brief">每个字母6次 × 2轮 · Hold 2秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">趴地上，依次做出四个手臂姿势，每个抬离地面hold 2秒：<br>
+        <strong>Y</strong> = 手臂斜上方45°（练下斜方肌）<br>
+        <strong>T</strong> = 手臂侧平举（练中斜方肌）<br>
+        <strong>W</strong> = 展翅夹背（练菱形肌）<br>
+        <strong>L</strong> = 大臂贴身、小臂90°外旋（练外旋肌群）</div>
+      <span class="detail-tag tag-key">背肌开关 · 激活下斜方+菱形肌</span>
+    </div></div>
+  </div>
+  
+  <div class="section-label">💪 训练 35min</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">1</span>
+      <div class="ex-info"><div class="ex-name">门框划船</div><div class="ex-brief">3组 × 8-12次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Dumbbell-Row.gif" alt="划船动作参考" onerror="this.parentElement.style.display='none'"><div class="gif-hint">参考俯身划船发力模式，门框版双手握门框两侧拉起身体</div></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">双手握住门框两侧，身体后倾至手臂伸直（脚在门框正下方），挺胸收肩胛，用力拉起身体至胸口接近门框。<em>顶峰夹背2秒</em>，慢放3秒。越后倾越难，初学倾斜角度小一点。</div>
+      <span class="detail-tag tag-key">顶峰夹背2秒 · 慢放3秒</span>
+      <span class="detail-tag tag-easy">后倾角度可调</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">2</span>
+      <div class="ex-info"><div class="ex-name">桌边俯身划船</div><div class="ex-brief">3组 × 每侧10次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Bent-Over-Dumbbell-Row.gif" alt="俯身划船" onerror="this.parentElement.style.display='none'"><div class="gif-hint">参考哑铃俯身划船，单手提重物版</div></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">一手扶稳固桌面，另一手提重物（装满水的背包或几本书，约3-5kg），俯身至上半身接近水平。手肘贴身往后拉，<em>肩胛骨先夹紧再屈肘</em>，顶端squeeze 1秒，慢放3秒。每侧做完换手。</div>
+      <div class="detail-title">渐进加重</div>
+      <div class="detail-text">W1用3kg，W2加重到5kg，W4每侧加到12次。</div>
+      <span class="detail-tag tag-key">居家练背主力 · 单侧纠正不平衡</span>
+      <span class="detail-tag tag-easy">W1: 3kg</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">3</span>
+      <div class="ex-info"><div class="ex-name">毛巾滑墙下拉</div><div class="ex-brief">3组 × 10-12次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">面对墙壁，双手握毛巾两端举过头顶贴墙。毛巾贴墙缓慢下拉至锁骨高度（模拟高位下拉），感受背阔肌收缩，再缓慢上推。全程保持毛巾贴墙、身体离墙一步距离。</div>
+      <span class="detail-tag tag-key">毛巾贴墙 · 感受背阔肌</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">4</span>
+      <div class="ex-info"><div class="ex-name">超人式</div><div class="ex-brief">3组 × 10-12次 · 休息90秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Superman-exercise.gif" alt="超人式" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">俯卧，双手双脚同时抬离地面约10-15cm，感受下背+臀部发力。顶端停留2秒，慢放。</div>
+      <div class="detail-title">⚠️ 常见错误</div>
+      <div class="detail-text"><strong>不要猛甩！</strong>是肌肉在发力不是惯性。猛甩伤腰没商量。</div>
+      <span class="detail-tag tag-hard">不甩 · 肌肉发力</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">5</span>
+      <div class="ex-info"><div class="ex-name">毛巾面拉</div><div class="ex-brief">3组 × 12次 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Face-Pull.gif" alt="面拉" onerror="this.parentElement.style.display='none'"><div class="gif-hint">参考绳索面拉，毛巾版双手持毛巾外旋拉开拉向耳侧</div></div>
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">双手持毛巾两端，手臂前伸。外旋拉开毛巾（双手向外拉扯产生张力），同时拉向脸部方向至耳侧，肘部外展。顶峰停留1秒，慢放。</div>
+      <span class="detail-tag tag-key">改善骑行圆肩 · 保护羽毛球扣杀肩膀</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">6</span>
+      <div class="ex-info"><div class="ex-name">仰卧举腿</div><div class="ex-brief">3组 × 10-12次 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-title">怎么做</div>
+      <div class="detail-text">仰卧，双手垫在臀部下方。双腿并拢缓慢抬至90度，<strong>下背始终贴地</strong>，再慢放至离地5cm（不触地）。</div>
+      <div class="detail-title">降级</div>
+      <div class="detail-text">如果下背离开地面，改为屈膝版本。</div>
+      <span class="detail-tag tag-key">下背贴地</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num pull">7</span>
+      <div class="ex-info"><div class="ex-name">平板支撑</div><div class="ex-brief">3组 × 20-30秒 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/plank.gif" alt="平板支撑" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-text">跟周二同样的核心动作，重复刺激。前臂撑地，身体成直线。<strong>宁短不塌</strong>。</div>
+    </div></div>
+  </div>
+  
+  <div class="section-label">🧘 拉伸 5min</div>
+  
+  <div class="stretch-item"><span class="s-name">门框胸肩拉伸</span><span class="s-time">每侧30秒</span></div>
+  <div class="stretch-item"><span class="s-name">婴儿式背部拉伸</span><span class="s-time">30秒 × 2</span></div>
+</div>
+
+<!-- ==================== 周五：羽毛球（无动图） ==================== -->
+<div class="day-card" id="card-fri">
+  <div class="card-hero badminton">
+    <h1>周五 · 羽毛球</h1>
+    <div class="meta">~2小时 · 高强度综合训练</div>
+  </div>
+  
+  <div class="tip-card">🏸 羽毛球2小时=天然HIIT+下肢爆发+核心稳定+肩膀手臂，不需要额外力量训练</div>
+  
+  <div class="section-label">🏸 打球前准备</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">1</span>
+      <div class="ex-info"><div class="ex-name">营养补给</div><div class="ex-brief">打球前2h吃碳水饭</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">打球前2小时吃一顿含碳水的饭（米饭/面条），<strong>不要空腹打</strong>。前1小时喝500ml水，打球时每15分钟补水。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">2</span>
+      <div class="ex-info"><div class="ex-name">动态热身</div><div class="ex-brief">5分钟 · 上场前做</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">高抬腿 + 弓步走 + 肩绕环，5分钟。<strong>不要上来就猛打</strong>，先对拉高远球热身。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">3</span>
+      <div class="ex-info"><div class="ex-name">护具</div><div class="ex-brief">有旧伤就提前防护</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">膝盖不适→戴护膝；有旧伤→提前贴肌贴。预防永远比治疗强。</div>
+    </div></div>
+  </div>
+  
+  <div class="section-label">💆 打球后恢复</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">4</span>
+      <div class="ex-info"><div class="ex-name">拉伸5部位</div><div class="ex-brief">各30秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">重点拉伸：小腿、大腿前后侧、肩、手腕。打完球不拉伸，第二天酸痛加倍。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">5</span>
+      <div class="ex-info"><div class="ex-name">营养补充</div><div class="ex-brief">打完30分钟内</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">香蕉+牛奶即可。如果膝盖/脚踝有轻微不适，回家冰敷15分钟。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">6</span>
+      <div class="ex-info"><div class="ex-name">早睡</div><div class="ex-brief">23:00前入睡</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">恢复最关键的不是补剂，是睡眠。2小时羽毛球后身体需要充足睡眠修复。</div>
+    </div></div>
+  </div>
+  
+  <div class="section-label">⚠️ 伤痛预警</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">!</span>
+      <div class="ex-info"><div class="ex-name">膝盖前方痛</div><div class="ex-brief">髌骨压力大/股四头肌弱</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">减少弓步救球，加强臀桥和深蹲。痛感明显→停止→告诉我。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">!</span>
+      <div class="ex-info"><div class="ex-name">肩膀前侧痛</div><div class="ex-brief">扣杀姿势不对/热身不足</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">先练高远球找感觉，扣杀前充分热身。如果每次扣杀都痛→检查动作。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num badminton">!</span>
+      <div class="ex-info"><div class="ex-name">手肘外侧痛</div><div class="ex-brief">反手发力错误</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">检查握拍姿势，必要时找教练纠正。网球肘不可忽视。</div>
+    </div></div>
+  </div>
+  
+  <div class="warn-card">膝盖/肩/肘有<strong>刺痛</strong>→立刻停止→告诉我，不要硬扛</div>
+</div>
+
+<!-- ==================== 周六：骑行（无动图） ==================== -->
+<div class="day-card" id="card-sat">
+  <div class="card-hero cycling">
+    <h1>周六 · 户外骑行</h1>
+    <div class="meta">2-4小时 · Zone 2 有氧耐力</div>
+    <div class="week-pills">
+      <span class="week-pill current">W1 40km</span>
+      <span class="week-pill">W2 50km</span>
+      <span class="week-pill">W3 55-60km</span>
+      <span class="week-pill">W4 60km</span>
+    </div>
+  </div>
+  
+  <div class="tip-card">🚴 本月重点：练踏频！平路保持85-95rpm，不追速度</div>
+  
+  <div class="section-label">📋 骑行参数</div>
+  
+  <div class="info-row"><span class="i-label">均速</span><span class="i-value">22-25 km/h</span></div>
+  <div class="info-row"><span class="i-label">心率区间</span><span class="i-value">Zone 2（60-70%，能正常说话）</span></div>
+  <div class="info-row"><span class="i-label">踏频</span><span class="i-value">85-95 rpm（刻意练习高踏频）</span></div>
+  
+  <div class="section-label">🎯 骑行技术重点</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num cycling">1</span>
+      <div class="ex-info"><div class="ex-name">踏频练习</div><div class="ex-brief">平路85-95rpm</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">如果习惯重踩70rpm，<em>换小一档飞轮提高频率</em>。高踏频=更高效率+更少关节压力。这不是一天能改的，每周都在练。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num cycling">2</span>
+      <div class="ex-info"><div class="ex-name">呼吸节奏</div><div class="ex-brief">2踩吸-2踩呼</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">与踏频同步呼吸：踩2圈吸气、踩2圈呼气。避免无氧冲刺导致气喘。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num cycling">3</span>
+      <div class="ex-info"><div class="ex-name">坐姿稳定</div><div class="ex-brief">核心微收不晃</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">核心微收，上半身不大幅晃动。力量从臀部传到脚踏，不是靠上半身摇摆借力。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num cycling">4</span>
+      <div class="ex-info"><div class="ex-name">补给策略</div><div class="ex-brief">每45分钟吃一口</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">每45分钟吃一小口能量食物（香蕉/能量胶），<strong>不要等到饿了再吃</strong>。每15分钟小口补水。</div>
+    </div></div>
+  </div>
+  
+  <div class="section-label">🎒 必带清单</div>
+  
+  <div class="info-row"><span class="i-label">头盔</span><span class="i-value">没有头盔不出门！</span></div>
+  <div class="info-row"><span class="i-label">前灯+尾灯</span><span class="i-value">即使白天也开闪烁</span></div>
+  <div class="info-row"><span class="i-label">水壶</span><span class="i-value">装满</span></div>
+  <div class="info-row"><span class="i-label">备胎+撬胎棒+气筒</span><span class="i-value">必带</span></div>
+  <div class="info-row"><span class="i-label">手机</span><span class="i-value">充满电</span></div>
+  
+  <div class="section-label">💆 骑行后恢复</div>
+  
+  <div class="stretch-item"><span class="s-name">髂腰肌拉伸</span><span class="s-time">每侧30秒 × 2</span></div>
+  <div class="stretch-item"><span class="s-name">股四头肌拉伸</span><span class="s-time">每侧30秒 × 2</span></div>
+  <div class="stretch-item"><span class="s-name">腘绳肌拉伸</span><span class="s-time">30秒 × 2</span></div>
+  <div class="stretch-item"><span class="s-name">小腿拉伸</span><span class="s-time">每侧30秒 × 2</span></div>
+  <div class="info-row"><span class="i-label">30分钟内补给</span><span class="i-value">2香蕉+1杯牛奶</span></div>
+</div>
+
+<!-- ==================== 周日：核心+柔韧性 ==================== -->
+<div class="day-card" id="card-sun">
+  <div class="card-hero core">
+    <h1>周日 · 核心+柔韧性</h1>
+    <div class="meta">~35 min · 主动恢复 · 低强度</div>
+    <div class="week-pills">
+      <span class="week-pill current">W1 标准执行</span>
+      <span class="week-pill">W2 支撑+时长</span>
+      <span class="week-pill">W3 加1组</span>
+      <span class="week-pill">W4 支撑60秒</span>
+    </div>
+  </div>
+  
+  <div class="tip-card">🧘 不是休息日，是主动恢复日——给核心打地基，给身体做保养</div>
+  
+  <div class="section-label">💪 训练 20min</div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num core">1</span>
+      <div class="ex-info"><div class="ex-name">平板支撑</div><div class="ex-brief">3组 × 30-40秒 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/plank.gif" alt="平板支撑" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-text">核心训练的根基，身体成直线不塌腰。比工作日多撑一点时间。<strong>宁短不塌</strong>。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num core">2</span>
+      <div class="ex-info"><div class="ex-name">侧平板支撑</div><div class="ex-brief">2组 × 每侧15-20秒 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Side-Plank-1.png" alt="侧平板支撑" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-text">侧撑，肘在肩正下方，臀部不下掉。<em>骑行侧腹稳定关键动作</em>——你在车上的稳定性很大程度靠侧腹。</div>
+      <span class="detail-tag tag-key">骑行侧腹稳定关键</span>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num core">3</span>
+      <div class="ex-info"><div class="ex-name">死虫式</div><div class="ex-brief">3组 × 每侧10次 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/05/Dead-Bug.gif" alt="死虫式" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-text">核心控制训练，下背始终贴地。可以把手垫在腰下检查——手被压住才算对。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num core">4</span>
+      <div class="ex-info"><div class="ex-name">猫牛式</div><div class="ex-brief">3组 × 10次 · 休息30秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">四点跪姿，脊柱交替拱起（猫）→下沉（牛），活动整条脊柱。配合呼吸：拱起呼气、下沉吸气。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num core">5</span>
+      <div class="ex-info"><div class="ex-name">臀桥</div><div class="ex-brief">2组 × 15次 · 休息60秒</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-gif"><img src="https://fitnessprogramer.com/wp-content/uploads/2021/02/Glute-Bridge-.gif" alt="臀桥" onerror="this.parentElement.style.display='none'"></div>
+      <div class="detail-text">骑行/羽毛球后臀部激活，轻轻做不追大强度。顶峰挤压臀部2秒，慢放3秒。</div>
+    </div></div>
+  </div>
+  
+  <div class="exercise-item" onclick="toggle(this)">
+    <div class="exercise-header">
+      <span class="ex-num core">6</span>
+      <div class="ex-info"><div class="ex-name">俯卧YTWL</div><div class="ex-brief">1组 × 每字母6次</div></div>
+      <span class="ex-arrow"><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></span>
+    </div>
+    <div class="exercise-detail"><div class="detail-inner">
+      <div class="detail-text">轻量背部激活，保持背肌的日常感觉，不追强度。Y=斜上45°/T=侧平举/W=展翅夹背/L=大臂贴身小臂90°外旋。每个姿势抬离地面hold 2秒。</div>
+    </div></div>
+  </div>
+  
+  <div class="section-label">🧘 全身拉伸 10min</div>
+  
+  <div class="stretch-item"><span class="s-name">髋屈肌弓步跪地</span><span class="s-time">每侧45秒</span></div>
+  <div class="stretch-item"><span class="s-name">股四头肌抓脚踝</span><span class="s-time">每侧30秒</span></div>
+  <div class="stretch-item"><span class="s-name">腘绳肌坐姿前屈</span><span class="s-time">45秒</span></div>
+  <div class="stretch-item"><span class="s-name">小腿推墙</span><span class="s-time">每侧30秒</span></div>
+  <div class="stretch-item"><span class="s-name">胸肩门框</span><span class="s-time">每侧30秒</span></div>
+  <div class="stretch-item"><span class="s-name">背部婴儿式</span><span class="s-time">45秒</span></div>
+  <div class="stretch-item"><span class="s-name">髂胫束泡沫轴</span><span class="s-time">每侧2分钟</span></div>
+</div>
+
+</div><!-- card-area end -->
+
+<script>
+function switchDay(tab) {
+  document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.day-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('card-' + tab.dataset.card).classList.add('active');
+  document.querySelectorAll('.exercise-item.open').forEach(e => e.classList.remove('open'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggle(item) {
+  item.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
